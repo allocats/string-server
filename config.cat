@@ -1,0 +1,23 @@
+config {
+	compiler: clang
+	build_dir: build/
+	default_flags: [-Wall -Wextra]
+}
+
+target executable string-server {
+	sources: [src/main.c]
+	flags: [-O3]
+	output: build/bin/string-server
+}
+
+target debug string-server_debug {
+	sources: [src/main.c]
+	flags: [-O0 -g3 -fsanitize=address -Weverything]
+	output: build/debug/string-server_debug
+}
+
+target test string-server_tests {
+	sources: [tests/test_main.c]
+	flags: [-g -Weverything]
+	output: build/tests/string-server_test
+}
