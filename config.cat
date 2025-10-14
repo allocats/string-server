@@ -5,7 +5,7 @@ config {
 }
 
 target executable string-server {
-	sources: [src/main.c]
+	sources: [src/sconn.c src/snet.c src/spoll.c src/main.c]
 	flags: [-O3]
 	output: build/bin/string-server
 }
