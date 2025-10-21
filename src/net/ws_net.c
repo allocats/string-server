@@ -44,6 +44,10 @@ int ws_create_tcp_server(const char* address, const uint16_t port) {
         WS_ERR_CLOSE_AND_EXIT("Failed to bind socket", fd, 1);
     }
 
+    if (ws_make_nonblocking(fd) == -1) {
+        WS_ERR_CLOSE_AND_EXIT("Failed to make non blocking", fd, 1);
+    }
+
     if (listen(fd, SOMAXCONN) == -1) {
         WS_ERR_CLOSE_AND_EXIT("Failed to start listening", fd, 1);
     }

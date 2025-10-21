@@ -10,10 +10,14 @@ target executable stringserver {
         includes/arena/arena_sse2.c
         includes/arena/arena_avx2.c
         includes/arena/arena.c 
+
+        src/http/ws_http.c
+
         src/net/ws_epoll.c
         src/net/ws_connection.c
         src/net/ws_net.c
         src/net/ws_server.c
+
         src/main.c
     ]
 	flags: [-O3]

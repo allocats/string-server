@@ -1,6 +1,8 @@
 #ifndef WS_COMMON_H
 #define WS_COMMON_H
 
+#define WS_DEBUG_LOGS
+
 #include "../../includes/arena/arena.h"
 
 #include <stdio.h>
