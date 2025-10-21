@@ -1,23 +1,33 @@
 config {
 	compiler: clang
 	build_dir: build/
-	default_flags: [-Wall -Wextra]
+	default_flags: [-Wall -Wextra -march=native]
 }
 
-target executable string-server {
-	sources: [src/sconn.c src/snet.c src/spoll.c src/main.c]
+target executable stringserver {
+	sources: [
+        includes/arena/arena_generic.c 
+        includes/arena/arena_sse2.c
+        includes/arena/arena_avx2.c
+        includes/arena/arena.c 
+        src/net/ws_epoll.c
+        src/net/ws_connection.c
+        src/net/ws_net.c
+        src/net/ws_server.c
+        src/main.c
+    ]
 	flags: [-O3]
-	output: build/bin/string-server
+	output: build/bin/stringserver
 }
 
-target debug string-server_debug {
+target debug stringserver_debug {
 	sources: [src/main.c]
 	flags: [-O0 -g3 -fsanitize=address -Weverything]
-	output: build/debug/string-server_debug
+	output: build/debug/stringserver_debug
 }
 
-target test string-server_tests {
+target test stringserver_tests {
 	sources: [tests/test_main.c]
 	flags: [-g -Weverything]
-	output: build/tests/string-server_test
+	output: build/tests/stringserver_test
 }
