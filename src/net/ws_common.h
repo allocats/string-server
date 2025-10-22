@@ -1,9 +1,10 @@
 #ifndef WS_COMMON_H
 #define WS_COMMON_H
 
-#define WS_DEBUG_LOGS
+// #define WS_DEBUG_LOGS
 
 #include "../../includes/arena/arena.h"
+#include "../utils/ws_types.h"
 
 #include <stdio.h>
 #include <unistd.h>

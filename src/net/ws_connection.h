@@ -3,8 +3,7 @@
 
 #include "ws_common.h"
 
-#include <stdbool.h>
-#include <stdint.h>
+#define WS_BUFFER_SIZE 4096
 
 typedef enum {
     WS_READING,
@@ -17,10 +16,10 @@ typedef struct {
     ws_State state;
     char* buffer;
     size_t buffer_size;
-    int fd;
+    i32 fd;
 } ws_Connection;
 
-ws_Connection* ws_find_slot(ArenaAllocator* arena, int fd, ws_Connection* conns, bool* slots, uint32_t max);
-void ws_free_connection(ws_Connection* ptr, ws_Connection* conns, bool* slots);
+ws_Connection* ws_find_slot(i32 fd, ws_Connection* conns, b32* slots, u32 max);
+void ws_free_connection(ws_Connection* ptr, ws_Connection* conns, b32* slots);
 
 #endif // !WS_CONNECTION_H

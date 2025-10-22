@@ -4,13 +4,12 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
-int ws_make_nonblocking(const int fd) {
-    int flags = fcntl(fd, F_GETFL, 0);
+i32 ws_make_nonblocking(const i32 fd) {
+    i32 flags = fcntl(fd, F_GETFL, 0);
     if (flags == -1) {
         perror("Fcntl() failed");
         _exit(1);
@@ -19,14 +18,14 @@ int ws_make_nonblocking(const int fd) {
     return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
 }
 
-int ws_create_tcp_server(const char* address, const uint16_t port) {
-    int fd = socket(AF_INET, SOCK_STREAM, 0);
+i32 ws_create_tcp_server(const char* address, const u16 port) {
+    i32 fd = socket(AF_INET, SOCK_STREAM, 0);
     if (fd == -1) {
         perror("Failed to create socket\n");
         _exit(1);
     }
 
-    int optval = 1;
+    i32 optval = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval)) == -1) {
         WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: SO_REUSEADDR", fd, 1);
     }

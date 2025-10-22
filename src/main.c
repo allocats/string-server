@@ -1,5 +1,7 @@
 #include "net/ws_server.h"
 
+#include "utils/ws_types.h"
+
 #include <signal.h>
 #include <stdlib.h>
 #include <sys/wait.h>
@@ -16,10 +18,10 @@ void sigint_handler(int sig) {
     running = 0;
 }
 
-int main(void) {
+i32 main(void) {
     signal(SIGINT, sigint_handler);
 
-    for (int i = 0; i < WORKER_COUNT; i++) {
+    for (i32 i = 0; i < WORKER_COUNT; i++) {
         if (fork() == 0) {
             ws_start_server(ADDRESS, PORT);
             exit(0);
