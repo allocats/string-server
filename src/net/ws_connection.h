@@ -16,6 +16,7 @@ typedef struct {
     ws_State state;
     char* buffer;
     size_t buffer_size;
+    size_t bytes_read;
     i32 fd;
 } ws_Connection;
 

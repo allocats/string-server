@@ -3,3 +3,6 @@ build/
 vgcore.*
 core.*
 callgrind.*
+perf.*
+gdb*
+gdb.*

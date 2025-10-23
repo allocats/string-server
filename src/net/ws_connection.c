@@ -1,5 +1,7 @@
 #include "ws_connection.h"
+#include "ws_server.h"
 
+#include <assert.h>
 #include <stdbool.h>
 #include <string.h>
 
@@ -12,10 +14,6 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* conns, b32* slots, u32 max) {
             conn -> fd = fd;
             conn -> state = WS_READING;
 
-            // if (conn -> buffer[0] != 0) {
-            //     memset(conn -> buffer, 0, conn -> buffer_size);
-            // }
-
             return conn;
         }
     }
@@ -27,7 +25,8 @@ void ws_free_connection(ws_Connection* ptr, ws_Connection* conns, b32* slots) {
     if (!ptr) return;
 
     u32 index = ptr - conns;
-    slots[index] = false;
+    assert(index < MAX_EVENTS && "Index out of range!\n");
 
+    slots[index] = false;
     close(ptr -> fd);
 }

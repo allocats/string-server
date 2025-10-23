@@ -27,7 +27,7 @@ void ws_start_server(const char* address, const u16 port) {
     i32 efd = ws_epoll_init_server(server_fd);
 
     ArenaAllocator arena = {0};
-    init_arena(&arena, 0);
+    init_arena(&arena, 16384);
 
     struct epoll_event events[MAX_EVENTS] = {0};
     ws_Connection connections[MAX_EVENTS] = {0};
@@ -61,6 +61,7 @@ void ws_start_server(const char* address, const u16 port) {
                 
                 ws_Connection* conn = ws_find_slot(client_fd, connections, connection_slots, MAX_EVENTS);
                 if (!conn) {
+                    close(client_fd);
                     continue;
                 }
 
@@ -84,12 +85,21 @@ void ws_start_server(const char* address, const u16 port) {
 
             if (current_event.events & EPOLLIN) {
                 if (current_conn -> state == WS_READING) {
-                    ssize_t n = ws_debug_read(current_conn);
+                    ssize_t n = ws_read(current_conn);
+                    current_conn -> bytes_read = n;
+
                     #ifdef WS_DEBUG_LOGS
                     printf("LOG: Read %zu bytes\n", n);
                     #endif /* ifdef WS_DEBUG_LOGS */
 
-                    n = ws_debug_response(current_conn);
+                    const ws_Asset* asset = ws_parse_request(current_conn);
+                    if (!asset) {
+                        ws_epoll_remove(efd, current_fd);
+                        ws_free_connection(current_event.data.ptr, connections, connection_slots);
+                        continue;
+                    }
+
+                    n = ws_write(current_conn, asset -> response, asset -> size);
                     if (n != -1) {
                         #ifdef WS_DEBUG_LOGS
                         printf("LOG: Sent %zu bytes\n", n);
@@ -110,7 +120,14 @@ void ws_start_server(const char* address, const u16 port) {
 
             if (current_event.events & EPOLLOUT) {
                 if (current_conn -> state == WS_RESPOND) {
-                    if (ws_debug_response(current_conn) != -1) {
+                    const ws_Asset* asset = ws_parse_request(current_conn);
+                    if (!asset) {
+                        ws_epoll_remove(efd, current_fd);
+                        ws_free_connection(current_event.data.ptr, connections, connection_slots);
+                        continue;
+                    }
+
+                    if (ws_write(current_conn, asset -> response, asset -> size) != -1) {
                         #ifdef WS_DEBUG_LOGS
                         printf("LOG: Sent response\n");
                         #endif /* ifdef WS_DEBUG_LOGS */
