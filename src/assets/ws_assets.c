@@ -2,7 +2,6 @@
 
 #include "../cache/ws_lookup_table.h"
 
-
 __attribute__((always_inline)) inline 
 const ws_Asset* ws_lookup_asset(u32 hash) {
     for (u32 i = 0; i < WS_ASSETS_COUNT; i++) {

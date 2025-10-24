@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #define WORKER_COUNT 12
-#define ADDRESS "127.0.0.1"
+#define ADDRESS "0.0.0.0"
 #define PORT 8080
 
 volatile sig_atomic_t running = 1;
