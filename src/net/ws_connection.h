@@ -7,7 +7,6 @@
 
 typedef enum {
     WS_READING,
-    WS_PARSING,
     WS_RESPOND,
     WS_DONE,
 } ws_State;

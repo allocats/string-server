@@ -116,7 +116,7 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
     
     original_size=$(wc -c < "$file")
 
-    header="HTTP/1.1 200 OK\r\nConnection: close\r\n"
+    header="HTTP/1.1 200 OK\r\nConnection: keep-alive\r\n"
     
     echo ""
     echo "Processing: /$rel_path ($original_size bytes)"

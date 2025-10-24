@@ -15,14 +15,14 @@ target executable stringserver {
 
         src/http/ws_http.c
 
-        src/net/ws_epoll.c
+        src/net/ws_uring.c
         src/net/ws_connection.c
         src/net/ws_net.c
         src/net/ws_server.c
 
         src/main.c
     ]
-	flags: [-O3 -flto]
+	flags: [-O3 -flto -luring]
 	output: build/bin/stringserver
 }
 
