@@ -91,6 +91,23 @@ djb2_hash() {
     echo $hash
 }
 
+fnv1a_hash() {
+    local string="$1"
+    local hash=2166136261
+    local char
+    local i
+
+    for (( i=0; i<${#string}; i++ )); do
+        # local char=$(printf '%d' "${string:$i:1}")
+        printf -v char '%d' "'${string:$i:1}"
+        (( hash^=char ))
+        (( hash=(hash*16777619)))
+        (( hash &= 0xFFFFFFFF ))
+    done
+
+    echo $hash
+}
+
 for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | sort); do
     rel_path=${file#$SRC_DIR}
     rel_path=${rel_path#/} 
@@ -131,7 +148,8 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
             ;;
     esac
 
-    hash=$(djb2_hash "${rel_path}")
+    # hash=$(djb2_hash "${rel_path}")
+    hash=$(fnv1a_hash "${rel_path}")
 
     echo "Hash for /${rel_path}: 0x$(printf '%x', $hash) (Input: ${rel_path}))"
     

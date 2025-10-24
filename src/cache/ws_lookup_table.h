@@ -8,12 +8,12 @@
 
 const ws_Asset WS_ASSETS[] = {
   {
-      .hash = 0xaf538a40,
+      .hash = 0xefe35522,
       .size = sizeof(response_index_html) - 1,
       .response = response_index_html
   },
   {
-      .hash = 0xe7547ca0,
+      .hash = 0x9876146e,
       .size = sizeof(response_styles_css) - 1,
       .response = response_styles_css
   },

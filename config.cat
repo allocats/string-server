@@ -1,7 +1,7 @@
 config {
 	compiler: clang
 	build_dir: build/
-	default_flags: [-Wall -Wextra -march=native -g]
+	default_flags: [-Wall -Wextra -march=native]
 }
 
 target executable stringserver {
@@ -22,7 +22,7 @@ target executable stringserver {
 
         src/main.c
     ]
-	flags: [-O3]
+	flags: [-O3 -flto]
 	output: build/bin/stringserver
 }
 
