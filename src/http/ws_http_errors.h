@@ -2,7 +2,7 @@
 #ifndef WS_HTTP_ERRORS_H
 #define WS_HTTP_ERRORS_H
 
-#include "../assets/ws_assets.h"
+#include "../assets/ws_assets_types.h"
 
 static const ws_Asset WS_HTTP_ERROR_400 = {
     .hash = 0x0,

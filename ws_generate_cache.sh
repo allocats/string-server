@@ -14,6 +14,7 @@ LOOKUP_FILE="src/cache/ws_lookup_table.h"
 echo "Generating cached files from $SRC_DIR..."
 
 cat > "$OUTPUT_FILE" << 'EOF'
+#pragma once
 #ifndef WS_CACHED_FILES_H
 #define WS_CACHED_FILES_H
 
@@ -22,13 +23,13 @@ cat > "$OUTPUT_FILE" << 'EOF'
 EOF
 
 cat > "$LOOKUP_FILE" << 'EOF'
+#pragma once
 #ifndef WS_LOOKUP_TABLE_H
 #define WS_LOOKUP_TABLE_H
 
 #include "ws_cached_files.h"
 
-#include "../assets/ws_assets.h"
-#include "../utils/ws_types.h"
+#include "../assets/ws_assets_types.h"
 
 const ws_Asset WS_ASSETS[] = {
 EOF

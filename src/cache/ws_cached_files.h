@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WS_CACHED_FILES_H
 #define WS_CACHED_FILES_H
 

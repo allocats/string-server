@@ -1,7 +1,8 @@
+#pragma once
 #ifndef WS_SERVER_H
 #define WS_SERVER_H
 
-#include "ws_common.h"
+#include "../../utils/ws_types.h"
 
 #define MAX_EVENTS 4096
 

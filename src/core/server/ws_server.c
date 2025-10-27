@@ -4,15 +4,15 @@
 #endif /* ifndef _GNU_SOURCE */
 
 #include "ws_server.h"
+#include "ws_sockets.h"
 
-#include "ws_common.h"
-#include "ws_connection.h"
-#include "ws_uring.h"
-#include "ws_net.h"
+#include "../common/ws_common.h"
+#include "../connection/ws_connection.h"
+#include "../io_uring/ws_uring.h"
 
-#include "../http/ws_http.h"
-#include "../utils/ws_debug.h"
-#include "../utils/ws_macros.h"
+#include "../../http/ws_http.h"
+#include "../../utils/ws_debug.h"
+#include "../../utils/ws_macros.h"
 
 #include <liburing.h>
 #include <stdbool.h>

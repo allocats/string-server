@@ -4,7 +4,6 @@
 *
 */
 
-#include "ws_common.h"
 #include "ws_epoll.h"
 
 #include <sys/epoll.h>
