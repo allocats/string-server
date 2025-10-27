@@ -1,16 +1,20 @@
+#pragma once
 #ifndef WS_HTTP_H
 #define WS_HTTP_H
 
 #include "../net/ws_connection.h"
 #include "../assets/ws_assets.h"
 
-#define WS_DEBUG_RESPONSE "HTTP/1.1 200 OK\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK"
-#define WS_DEBUG_RESPONSE_LEN strlen(WS_DEBUG_RESPONSE)
+typedef enum {
+    WS_HTTP_PARSE_METHOD
+} ws_HttpParseState;
 
-const ws_Asset* ws_parse_request(ws_Connection* conn);
-// void ws_parse_request(ws_Connection* conn);
+typedef enum {
+    WS_HTTP_PARSE_INCOMPLETE,
+    WS_HTTP_PARSE_ERROR,
+    WS_HTTP_PARSE_OK,
+} ws_HttpParseResult;
 
-ssize_t ws_read(ws_Connection* conn);
-ssize_t ws_write(ws_Connection* conn, const char* buffer, const size_t len);
+const ws_Asset* ws_parse_request(ws_Connection* conn, ws_HttpParseResult* status);
 
 #endif // !WS_HTTP_H

@@ -1,12 +1,14 @@
+#pragma once
 #ifndef WS_ASSETS_H
 #define WS_ASSETS_H
 
 #include "../utils/ws_types.h"
 
-typedef struct {
-    const u32 hash;
-    const u32 size;
+typedef struct __attribute__ ((aligned(32))) {
+    const size_t size;
     const char* response;
+    const u32 hash;
+    u8 _padding[12];
 } ws_Asset;
 
 const ws_Asset* ws_lookup_asset(u32 hash);

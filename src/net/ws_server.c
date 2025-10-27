@@ -1,6 +1,5 @@
 #ifndef _GNU_SOURCE
 #define _GNU_SOURCE
-#include <liburing/io_uring.h>
 #include <unistd.h>
 #endif /* ifndef _GNU_SOURCE */
 
@@ -12,6 +11,7 @@
 #include "ws_net.h"
 
 #include "../http/ws_http.h"
+#include "../utils/ws_debug.h"
 #include "../utils/ws_macros.h"
 
 #include <liburing.h>
@@ -70,23 +70,26 @@ void ws_start_server(const char* address, const u16 port) {
 
                 ws_Connection* conn = ws_find_slot(res, connections, connection_slots, MAX_EVENTS);
                 if (UNLIKELY(!conn)) {
+                    ws_debug_log("[Line %d]: Connection pool is full!", __LINE__);
                     close(res);
                     break;
                 }
 
                 conn -> fd = res;
                 ws_uring_add_read(&ring, conn);
-                // ws_uring_add_accept(&ring, server_fd);
+
+                ws_debug_log("[Line %d] Added client, fd: %d. Reading request", __LINE__, conn -> fd);
 
                 break;
             }
 
             case WS_IO_EVENT_CLIENT: {
                 ws_Connection* conn = event -> conn;
-                
+
                 switch (conn -> state) {
                     case WS_READING: {
                         if (UNLIKELY(res <= 0)) {
+                            ws_debug_log("[Line %d] Closing client %d", __LINE__, conn -> fd);
                             ws_free_connection(conn, connections, connection_slots);
                             break;
                         }
@@ -94,14 +97,25 @@ void ws_start_server(const char* address, const u16 port) {
                         conn -> bytes_read = res;
                         conn -> state = WS_RESPOND;
 
-                        const ws_Asset* asset = ws_parse_request(conn);
+                        ws_HttpParseResult result;
+                        const ws_Asset* asset = ws_parse_request(conn, &result);
+
+                        if (UNLIKELY(result == WS_HTTP_PARSE_ERROR)) {
+                            ws_debug_log("[Line %d] Bad request for client %d", __LINE__, conn -> fd);
+                            ws_uring_add_write(&ring, conn, asset);
+                            // ws_free_connection(conn, connections, connection_slots);
+                            conn -> state = WS_DONE;
+                            break;
+                        }
 
                         ws_uring_add_write(&ring, conn, asset);
+                        ws_debug_log("[Line %d] Sent %zu bytes to client %d", __LINE__, asset -> size, conn -> fd);
                         break;
                     }
 
                     case WS_RESPOND: {
                         if (UNLIKELY(res < 0)) {
+                            ws_debug_log("[Line %d] Closing client %d", __LINE__, conn -> fd);
                             ws_free_connection(conn, connections, connection_slots);
                             break;
                         }
@@ -109,11 +123,13 @@ void ws_start_server(const char* address, const u16 port) {
                         conn -> bytes_read = 0;
                         conn -> state = WS_READING;
                         ws_uring_add_read(&ring, conn);
+                        ws_debug_log("[Line %d] Moving client %d to reading state", __LINE__, conn -> fd);
 
                         break;
                     }
 
                     case WS_DONE: {
+                        ws_debug_log("[Line %d] Client is done, closing %d", __LINE__, conn -> fd);
                         ws_free_connection(conn, connections, connection_slots);
                         break;
                     }

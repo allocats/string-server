@@ -1,3 +1,9 @@
+/*
+*
+* DEPRECATED FOR NOW
+*
+*/
+
 #ifndef WS_EPOLL_H
 #define WS_EPOLL_H
 

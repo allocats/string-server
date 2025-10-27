@@ -1,3 +1,9 @@
+/*
+*
+* DEPRECATED FOR NOW
+*
+*/
+
 #include "ws_common.h"
 #include "ws_epoll.h"
 

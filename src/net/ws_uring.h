@@ -11,7 +11,7 @@
 #include <liburing.h>
 
 #define RING_SIZE 256
-#define MAX_IO_EVENTS RING_SIZE 
+#define MAX_IO_EVENTS RING_SIZE * 2
 
 typedef enum {
     WS_IO_EVENT_ACCEPT,

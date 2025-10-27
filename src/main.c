@@ -1,9 +1,14 @@
+#define _GNU_SOURCE
+
 #include "net/ws_server.h"
 
 #include "utils/ws_types.h"
 
 #include <signal.h>
 #include <stdlib.h>
+#include <stdio.h>
+#include <sched.h>
+#include <sys/sysinfo.h>
 #include <sys/wait.h>
 #include <unistd.h>
 
@@ -18,11 +23,24 @@ void sigint_handler(int sig) {
     running = 0;
 }
 
+void pin_to_cpu(int cpu) {
+    cpu_set_t cpuset;
+    CPU_ZERO(&cpuset);
+    CPU_SET(cpu, &cpuset);
+    
+    if (sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0) {
+        printf("Pinned to CPU %d\n", cpu);
+    } else {
+        perror("sched_setaffinity");
+    }
+}
+
 i32 main(void) {
     signal(SIGINT, sigint_handler);
 
     for (i32 i = 0; i < WORKER_COUNT; i++) {
         if (fork() == 0) {
+            pin_to_cpu(i);
             ws_start_server(ADDRESS, PORT);
             exit(0);
         } 

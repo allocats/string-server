@@ -11,12 +11,13 @@ typedef enum {
     WS_DONE,
 } ws_State;
 
-typedef struct {
-    ws_State state;
+typedef struct __attribute__ ((aligned(32))) {
     char* buffer;
-    size_t buffer_size;
-    size_t bytes_read;
+    u32 buffer_size;
+    u32 bytes_read;
+    ws_State state;
     i32 fd;
+    u8 _padding[8];
 } ws_Connection;
 
 ws_Connection* ws_find_slot(i32 fd, ws_Connection* conns, b32* slots, u32 max);
