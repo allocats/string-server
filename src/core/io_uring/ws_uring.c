@@ -1,6 +1,6 @@
 #include "ws_uring.h"
 
-#include "ws_connection.h"
+#include "../../utils/ws_macros.h"
 
 #include <liburing.h>
 #include <stdio.h>

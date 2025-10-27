@@ -1,5 +1,6 @@
-#include "ws_common.h"
-#include "ws_net.h"
+#include "ws_sockets.h"
+
+#include "../common/ws_common.h"
 
 #include <arpa/inet.h>
 #include <fcntl.h>

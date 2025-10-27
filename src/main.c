@@ -1,6 +1,6 @@
 #define _GNU_SOURCE
 
-#include "net/ws_server.h"
+#include "core/server/ws_server.h"
 
 #include "utils/ws_types.h"
 

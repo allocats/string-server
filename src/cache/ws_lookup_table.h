@@ -1,10 +1,10 @@
+#pragma once
 #ifndef WS_LOOKUP_TABLE_H
 #define WS_LOOKUP_TABLE_H
 
 #include "ws_cached_files.h"
 
-#include "../assets/ws_assets.h"
-#include "../utils/ws_types.h"
+#include "../assets/ws_assets_types.h"
 
 const ws_Asset WS_ASSETS[] = {
   {

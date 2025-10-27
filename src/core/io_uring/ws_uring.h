@@ -1,30 +1,16 @@
+#pragma once
 #ifndef WS_URING_H
 #define WS_URING_H
 
-#include "../assets/ws_assets.h"
-#include "../utils/ws_types.h"
-#include "../utils/ws_macros.h"
+#include "ws_uring_types.h"
 
-#include "ws_connection.h"
-#include "ws_server.h"
+#include "../../assets/ws_assets.h"
+#include "../../utils/ws_types.h"
 
 #include <liburing.h>
 
 #define RING_SIZE 256
 #define MAX_IO_EVENTS RING_SIZE * 2
-
-typedef enum {
-    WS_IO_EVENT_ACCEPT,
-    WS_IO_EVENT_CLIENT,
-} ws_IoEventType;
-
-typedef struct {
-    ws_IoEventType type;
-    union {
-        i32 server_fd;
-        ws_Connection *conn;
-    };
-} ws_IoEvent;
 
 static ws_IoEvent WS_ACCEPT_EVENT = {
     .type = WS_IO_EVENT_ACCEPT,

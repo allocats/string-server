@@ -1,10 +1,8 @@
 #include "ws_connection.h"
 
-#include "../utils/ws_macros.h"
+#include "../../utils/ws_macros.h"
 
-#include <assert.h>
-#include <stdbool.h>
-#include <string.h>
+#include <unistd.h>
 
 static u32 last_index = 0;
 

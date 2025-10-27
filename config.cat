@@ -15,10 +15,10 @@ target executable stringserver {
 
         src/http/ws_http.c
 
-        src/net/ws_uring.c
-        src/net/ws_connection.c
-        src/net/ws_net.c
-        src/net/ws_server.c
+        src/core/io_uring/ws_uring.c
+        src/core/connection/ws_connection.c
+        src/core/server/ws_sockets.c
+        src/core/server/ws_server.c
 
         src/main.c
     ]

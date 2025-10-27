@@ -1,13 +1,12 @@
 #include "ws_http.h"
 
-#include "../assets/ws_assets.h"
 #include "../utils/ws_macros.h"
 
 #include "ws_http_errors.h"
 
-#include <errno.h>
-#include <stdio.h>
-#include <string.h>
+// #include <errno.h>
+// #include <stdio.h>
+// #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 

@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WS_MACROS_H
 #define WS_MACROS_H
 

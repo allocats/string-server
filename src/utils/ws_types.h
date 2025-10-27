@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WS_TYPES_H
 #define WS_TYPES_H
 

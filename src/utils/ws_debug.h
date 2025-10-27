@@ -1,3 +1,4 @@
+#pragma once
 #ifndef WS_DEBUG_H
 #define WS_DEBUG_H
 
