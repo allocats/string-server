@@ -5,6 +5,12 @@
 #include <assert.h>
 #include <stdio.h>
 
+/*
+*
+*   Use this define to enable/disable debugging fn's across the project 
+*
+*/
+
 // #define WS_DEBUG_MODE
 
 #ifdef WS_DEBUG_MODE

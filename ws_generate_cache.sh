@@ -37,59 +37,11 @@ EOF
 file_count=0
 
 minify_html() {
-    sed 's/<!--.*-->//g' | \
-    sed 's/>[[:space:]]\+</></g' | \
-    sed 's/^[[:space:]]\+//g' | \
-    sed 's/[[:space:]]\+$//g' | \
-    tr -s ' ' | \
-    sed 's/[[:space:]]*=[[:space:]]*/=/g' | \
-    tr -d '\n' | tr -d '\r'
+    html-minifier --collapse-whitespace --remove-comments --remove-optional-tags --remove-redundant-attributes --remove-script-type-attributes --remove-tag-whitespace --use-short-doctype --minify-css true --minify-js true
 }
 
-minify_css() {
-    # sed 's/\/\*.*\*\///g' | \
-    tr -d '\n' | tr -d '\r' | \
-    sed 's/[[:space:]]\+/ /g' | \
-    sed 's/[[:space:]]*{[[:space:]]*/{/g' | \
-    sed 's/[[:space:]]*}[[:space:]]*/}/g' | \
-    sed 's/[[:space:]]*;[[:space:]]*/;/g' | \
-    sed 's/[[:space:]]*:[[:space:]]*/:/g' | \
-    sed 's/[[:space:]]*,[[:space:]]*/,/g' | \
-    sed 's/^[[:space:]]\+//g' | \
-    sed 's/[[:space:]]\+$//g'
-}
-
-minify_js() {
-    sed 's/\/\*.*\*\///g' | \
-    sed 's/\/\/.*$//g' | \
-    sed 's/"[^"]*"/STRING_PLACEHOLDER_&/g' | \ 
-    tr -d '\n' | tr -d '\r' | \
-    sed 's/[[:space:]]\+/ /g' | \
-    sed 's/[[:space:]]*{[[:space:]]*/{/g' | \
-    sed 's/[[:space:]]*}[[:space:]]*/}/g' | \
-    sed 's/[[:space:]]*;[[:space:]]*/;/g' | \
-    sed 's/[[:space:]]*([[:space:]]*(/g' | \
-    sed 's/[[:space:]]*)[[:space:]]*/)/g' | \
-    sed 's/^[[:space:]]\+//g' | \
-    sed 's/[[:space:]]\+$//g'
-}
-
-escape_for_asm() {
+escape_for_string_delim() {
     sed 's/\\/\\\\/g; s/"/\\"/g'
-}
-
-djb2_hash() {
-    local string="$1"
-    local hash=5381
-    local i
-    
-    for (( i=0; i<${#string}; i++ )); do
-        local char=$(printf '%d' "'${string:$i:1}")
-        hash=$(( (hash << 5) + hash + char ))
-        hash=$(( hash & 0xFFFFFFFF ))
-    done
-    
-    echo $hash
 }
 
 fnv1a_hash() {
@@ -127,29 +79,28 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
         *.html)
             content=$(cat "$file" | minify_html)
             content_len=${#content}
-            content=$(echo "$content" | escape_for_asm)
+            content=$(echo "$content" | escape_for_string_delim)
             header+="Content-Type: text/html\r\nContent-Length: ${content_len}\r\n\r\n"
             ;;
         *.css)
-            content=$(cat "$file" | minify_css)
+            content=$(cat "$file" | csso)
             content_len=${#content}
-            content=$(echo "$content" | escape_for_asm)
+            content=$(echo "$content" | escape_for_string_delim)
             header+="Content-Type: text/css\r\nContent-Length: ${content_len}\r\n\r\n"
             ;;
         *.js)
-            content=$(cat "$file" | minify_js)
+            content=$(cat "$file" | terser)
             content_len=${#content}
-            content=$(echo "$content" | escape_for_asm)
+            content=$(echo "$content" | escape_for_string_delim)
             header+="Content-Type: text/javascript\r\nContent-Length: ${content_len}\r\n\r\n"
             ;;
         *)
             content=$(cat "$file")
             content_len=${#content}
-            content=$(echo "$content" | escape_for_asm)
+            content=$(echo "$content" | escape_for_string_delim)
             ;;
     esac
 
-    # hash=$(djb2_hash "${rel_path}")
     hash=$(fnv1a_hash "${rel_path}")
 
     echo "Hash for /${rel_path}: 0x$(printf '%x', $hash) (Input: ${rel_path}))"
@@ -158,12 +109,9 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
     savings=$((original_size - minified_size))
     percentage=$(( savings * 100 / original_size ))
 
-    total_length=$(( ${#content} + ${#header} ))
-    
     echo "  Minified: $minified_size bytes (saved $savings bytes, ${percentage}%)"
 
     echo "static const char response_$safe_name[] = \"$header\" \"$content\";" >> "$OUTPUT_FILE"
-    echo "static const size_t length_$safe_name = $total_length;" >> "$OUTPUT_FILE"
     echo "" >> "$OUTPUT_FILE"
 
     echo "  {" >> "$LOOKUP_FILE"
@@ -180,7 +128,7 @@ echo "" >> "$LOOKUP_FILE"
 echo "const u32 WS_ASSETS_COUNT = $file_count;" >> "$LOOKUP_FILE"
 echo "" >> "$LOOKUP_FILE"
 
-# CLOSING IF
+# CLOSING IF GUARD
 
 echo "#endif // !WS_CACHED_FILES_H" >> "$OUTPUT_FILE"
 echo "#endif // !WS_LOOKUP_TABLE_H" >> "$LOOKUP_FILE"

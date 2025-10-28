@@ -2,6 +2,7 @@
 
 #include "core/server/ws_server.h"
 
+#include "utils/ws_debug.h"
 #include "utils/ws_types.h"
 
 #include <signal.h>
@@ -28,15 +29,16 @@ void pin_to_cpu(int cpu) {
     CPU_ZERO(&cpuset);
     CPU_SET(cpu, &cpuset);
     
-    if (sched_setaffinity(0, sizeof(cpuset), &cpuset) == 0) {
-        printf("Pinned to CPU %d\n", cpu);
-    } else {
+    if (sched_setaffinity(0, sizeof(cpuset), &cpuset) != 0) {
         perror("sched_setaffinity");
     }
 }
 
 i32 main(void) {
     signal(SIGINT, sigint_handler);
+
+    ws_debug_assert(sizeof(ws_Connection) == 32);
+    ws_debug_assert(sizeof(ws_Asset) == 32);
 
     for (i32 i = 0; i < WORKER_COUNT; i++) {
         if (fork() == 0) {

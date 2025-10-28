@@ -4,7 +4,7 @@
 
 #include "../../utils/ws_types.h"
 
-#define MAX_EVENTS 4096
+#define MAX_CONNECTIONS 4096
 
 void ws_start_server(const char* address, const u16 port);
 

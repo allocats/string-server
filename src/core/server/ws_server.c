@@ -15,9 +15,7 @@
 #include "../../utils/ws_macros.h"
 
 #include <liburing.h>
-#include <stdbool.h>
 #include <stdio.h>
-#include <signal.h>
 
 extern volatile sig_atomic_t running; 
 
@@ -37,12 +35,12 @@ void ws_start_server(const char* address, const u16 port) {
     ArenaAllocator arena = {0};
     init_arena(&arena, 16384);
 
-    ws_Connection connections[MAX_EVENTS] = {0};
-    b32 connection_slots[MAX_EVENTS] = {0};
+    ws_Connection connections[MAX_CONNECTIONS] = {0};
+    b32 connection_slots[MAX_CONNECTIONS] = {0};
 
-    for (i32 i = 0; i < MAX_EVENTS; i++) {
-        connections[i].buffer = arena_alloc(&arena, WS_BUFFER_SIZE);
-        connections[i].buffer_size = WS_BUFFER_SIZE;
+    for (i32 i = 0; i < MAX_CONNECTIONS; i++) {
+        connections[i].buffer = arena_alloc(&arena, WS_DEFAULT_BUFFER_SIZE);
+        connections[i].buffer_size = WS_DEFAULT_BUFFER_SIZE;
     }
 
     while (LIKELY(running == 1)) {
@@ -68,9 +66,13 @@ void ws_start_server(const char* address, const u16 port) {
                     break;
                 }
 
-                ws_Connection* conn = ws_find_slot(res, connections, connection_slots, MAX_EVENTS);
+                ws_Connection* conn = ws_find_slot(res, connections, connection_slots, MAX_CONNECTIONS);
                 if (UNLIKELY(!conn)) {
-                    ws_debug_log("[Line %d]: Connection pool is full!", __LINE__);
+                    ws_debug_log(
+                        "[Line %d]: Connection pool is full!", 
+                        __LINE__
+                    );
+
                     close(res);
                     break;
                 }
@@ -78,7 +80,10 @@ void ws_start_server(const char* address, const u16 port) {
                 conn -> fd = res;
                 ws_uring_add_read(&ring, conn);
 
-                ws_debug_log("[Line %d] Added client, fd: %d. Reading request", __LINE__, conn -> fd);
+                ws_debug_log(
+                    "[Line %d] Added client, fd: %d. Reading request", 
+                    __LINE__, conn -> fd
+                );
 
                 break;
             }
@@ -89,33 +94,65 @@ void ws_start_server(const char* address, const u16 port) {
                 switch (conn -> state) {
                     case WS_READING: {
                         if (UNLIKELY(res <= 0)) {
-                            ws_debug_log("[Line %d] Closing client %d", __LINE__, conn -> fd);
                             ws_free_connection(conn, connections, connection_slots);
+
+                            ws_debug_log(
+                                "[Line %d] Closing client %d", 
+                                __LINE__, conn -> fd
+                            );
+                            
                             break;
                         }
 
-                        conn -> bytes_read = res;
-                        conn -> state = WS_RESPOND;
+                        conn -> bytes_read += res;
+
+                        ws_debug_log(
+                            "[Line %d] Parsing %u bytes",
+                            __LINE__, conn -> bytes_read
+                        );
 
                         ws_HttpParseResult result;
                         const ws_Asset* asset = ws_parse_request(conn, &result);
 
-                        if (UNLIKELY(result == WS_HTTP_PARSE_ERROR)) {
-                            ws_debug_log("[Line %d] Bad request for client %d", __LINE__, conn -> fd);
+                        if (LIKELY(result == WS_HTTP_PARSE_OK)) {
+                            conn -> state = WS_RESPOND;
                             ws_uring_add_write(&ring, conn, asset);
-                            // ws_free_connection(conn, connections, connection_slots);
+
+                            ws_debug_log(
+                                "[Line %d] Sent %zu bytes to client %d", 
+                                __LINE__, asset -> size, conn -> fd
+                            );
+
+                            break;
+                        } else if (LIKELY(result == WS_HTTP_PARSE_ERROR)) {
+                            ws_uring_add_write(&ring, conn, asset);
                             conn -> state = WS_DONE;
+
+                            ws_debug_log(
+                                "[Line %d] Bad request for client %d", 
+                                __LINE__, conn -> fd
+                            );
+
+                            break;
+                        } else {
+                            ws_uring_add_read(&ring, conn);
+
+                            ws_debug_log(
+                                "[Line %d] Incomplete request for client %d", 
+                                __LINE__, conn -> fd
+                            );
+
                             break;
                         }
-
-                        ws_uring_add_write(&ring, conn, asset);
-                        ws_debug_log("[Line %d] Sent %zu bytes to client %d", __LINE__, asset -> size, conn -> fd);
-                        break;
                     }
 
                     case WS_RESPOND: {
                         if (UNLIKELY(res < 0)) {
-                            ws_debug_log("[Line %d] Closing client %d", __LINE__, conn -> fd);
+                            ws_debug_log(
+                                "[Line %d] Closing client %d", 
+                                __LINE__, conn -> fd
+                            );
+
                             ws_free_connection(conn, connections, connection_slots);
                             break;
                         }
@@ -123,18 +160,22 @@ void ws_start_server(const char* address, const u16 port) {
                         conn -> bytes_read = 0;
                         conn -> state = WS_READING;
                         ws_uring_add_read(&ring, conn);
-                        ws_debug_log("[Line %d] Moving client %d to reading state", __LINE__, conn -> fd);
+
+                        ws_debug_log(
+                            "[Line %d] Moving client %d to reading state", 
+                            __LINE__, conn -> fd
+                        );
 
                         break;
                     }
 
                     case WS_DONE: {
-                        ws_debug_log("[Line %d] Client is done, closing %d", __LINE__, conn -> fd);
-                        ws_free_connection(conn, connections, connection_slots);
-                        break;
-                    }
+                        ws_debug_log(
+                            "[Line %d] Client is done, closing %d", 
+                            __LINE__, conn -> fd
+                        );
 
-                    default: {
+                        ws_free_connection(conn, connections, connection_slots);
                         break;
                     }
                 }

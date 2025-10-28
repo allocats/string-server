@@ -4,10 +4,10 @@
 
 #include "../utils/ws_types.h"
 
-static const char response_index_html[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 255\r\n\r\n" "<!DOCTYPE html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><link rel=\"stylesheet\" href=\"styles.css\"><title>hello from string server :3</title></head><body><h1>Testing</h1></body></html>";
-static const size_t length_index_html = 366;
+static const char response_index_html[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/html\r\nContent-Length: 405\r\n\r\n" "<!doctypehtml><html lang=\"en\"><meta charset=\"UTF-8\"><meta name=\"viewport\"content=\"width=device-width,initial-scale=1\"><title>hello from string server :3</title><h1 id=\"demo\">Welcome to string server!</h1><p>Thank you for stopping by my passion/curiosity project. I will be pursuing this project for a long time and hopefully turn this into a fully functional production ready system :) <a href=\"\">Blah</a>";
 
-static const char response_styles_css[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/css\r\nContent-Length: 14\r\n\r\n" "h1{color:red;}";
-static const size_t length_styles_css = 111;
+static const char response_index_js[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/javascript\r\nContent-Length: 54\r\n\r\n" "document.getElementById(\"demo\").style.fontSize=\"50px\";";
+
+static const char response_styles_css[] = "HTTP/1.1 200 OK\r\nConnection: keep-alive\r\nContent-Type: text/css\r\nContent-Length: 13\r\n\r\n" "h1{color:red}";
 
 #endif // !WS_CACHED_FILES_H

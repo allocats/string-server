@@ -13,12 +13,17 @@ const ws_Asset WS_ASSETS[] = {
       .response = response_index_html
   },
   {
+      .hash = 0xebd1114,
+      .size = sizeof(response_index_js) - 1,
+      .response = response_index_js
+  },
+  {
       .hash = 0x9876146e,
       .size = sizeof(response_styles_css) - 1,
       .response = response_styles_css
   },
 };
 
-const u32 WS_ASSETS_COUNT = 2;
+const u32 WS_ASSETS_COUNT = 3;
 
 #endif // !WS_LOOKUP_TABLE_H
