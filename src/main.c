@@ -1,5 +1,11 @@
 #define _GNU_SOURCE
 
+#include "utils/ws_debug.h"
+#ifdef WS_DEBUG_MODE
+#include "assets/ws_assets_types.h"
+#include "core/connection/ws_connection_types.h"
+#endif
+
 #include "core/server/ws_server.h"
 
 #include "utils/ws_debug.h"

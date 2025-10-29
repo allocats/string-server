@@ -2,6 +2,7 @@
 #ifndef WS_CONNECTION_TYPES_H
 #define WS_CONNECTION_TYPES_H
 
+#include "../../assets/ws_assets_types.h"
 #include "../../http/ws_http_types.h"
 #include "../../utils/ws_types.h"
 
@@ -26,10 +27,10 @@ typedef enum {
 typedef struct __attribute__ ((aligned(32))) {
     char* buffer;
     u32 buffer_size;
-    u32 bytes_read;
+    u32 bytes_transferred;
+    const ws_Asset* asset;
     ws_State state;
     i32 fd;
-    u8 _padding[8];
 } ws_Connection;
 
 #endif // !WS_CONNECTION_TYPES_H

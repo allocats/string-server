@@ -78,6 +78,7 @@ void ws_start_server(const char* address, const u16 port) {
                 }
 
                 conn -> fd = res;
+                conn -> state = WS_READING;
                 ws_uring_add_read(&ring, conn);
 
                 ws_debug_log(
@@ -104,18 +105,21 @@ void ws_start_server(const char* address, const u16 port) {
                             break;
                         }
 
-                        conn -> bytes_read += res;
+                        conn -> bytes_transferred += res;
 
                         ws_debug_log(
                             "[Line %d] Parsing %u bytes",
-                            __LINE__, conn -> bytes_read
+                            __LINE__, conn -> bytes_transferred
                         );
 
                         ws_HttpParseResult result;
                         const ws_Asset* asset = ws_parse_request(conn, &result);
 
+                        conn -> asset = asset;
+
                         if (LIKELY(result == WS_HTTP_PARSE_OK)) {
                             conn -> state = WS_RESPOND;
+                            conn -> bytes_transferred = 0;
                             ws_uring_add_write(&ring, conn, asset);
 
                             ws_debug_log(
@@ -125,8 +129,9 @@ void ws_start_server(const char* address, const u16 port) {
 
                             break;
                         } else if (LIKELY(result == WS_HTTP_PARSE_ERROR)) {
-                            ws_uring_add_write(&ring, conn, asset);
                             conn -> state = WS_DONE;
+                            conn -> bytes_transferred = 0;
+                            ws_uring_add_write(&ring, conn, asset);
 
                             ws_debug_log(
                                 "[Line %d] Bad request for client %d", 
@@ -157,7 +162,19 @@ void ws_start_server(const char* address, const u16 port) {
                             break;
                         }
 
-                        conn -> bytes_read = 0;
+                        conn -> bytes_transferred += res;
+
+                        if (UNLIKELY(conn -> bytes_transferred < conn -> asset -> size)) {
+                            ws_debug_log(
+                                "[Line %d] Partial write for client %d", 
+                                __LINE__, conn -> fd
+                            );
+
+                            ws_uring_add_write(&ring, conn, conn -> asset); 
+                            break;
+                        }
+
+                        conn -> bytes_transferred = 0;
                         conn -> state = WS_READING;
                         ws_uring_add_read(&ring, conn);
 

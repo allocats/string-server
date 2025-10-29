@@ -1,6 +1,7 @@
 #include "ws_connection.h"
 
 #include "../../utils/ws_macros.h"
+#include "ws_connection_types.h"
 
 #include <unistd.h>
 
@@ -14,7 +15,7 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict
             ws_Connection* conn = &conns[i];
             conn -> fd = fd;
             conn -> state = WS_READING;
-            conn -> bytes_read = 0;
+            conn -> bytes_transferred = 0;
 
             return conn;
         }
@@ -27,7 +28,7 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict
             ws_Connection* conn = &conns[i];
             conn -> fd = fd;
             conn -> state = WS_READING;
-            conn -> bytes_read = 0;
+            conn -> bytes_transferred = 0;
 
             return conn;
         }
@@ -44,7 +45,7 @@ void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict con
     last_index = index;
     slots[index] = false;
 
-    ptr -> bytes_read = 0;
+    ptr -> bytes_transferred = 0;
 
     close(ptr -> fd);
 }

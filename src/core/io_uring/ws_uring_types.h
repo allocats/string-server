@@ -11,11 +11,11 @@ typedef enum {
 } ws_IoEventType;
 
 typedef struct {
-    ws_IoEventType type;
     union {
         i32 server_fd;
         ws_Connection *conn;
     };
+    ws_IoEventType type;
 } ws_IoEvent;
 
 #endif // !WS_URING_TYPES_H

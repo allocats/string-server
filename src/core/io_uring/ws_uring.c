@@ -4,6 +4,7 @@
 
 #include <liburing.h>
 #include <stdio.h>
+#include <sys/socket.h>
 
 static inline ws_IoEvent* ws_uring_alloc_event(void) {
     ws_IoEvent* event = &WS_IO_EVENTS[WS_IO_EVENT_INDEX];
@@ -34,13 +35,15 @@ void ws_uring_add_read(struct io_uring* ring, ws_Connection* conn) {
     event -> type = WS_IO_EVENT_CLIENT;
     event -> conn = conn;
 
-    conn -> state = WS_READING;
+    u32 bytes_read = conn -> bytes_transferred;
 
-    io_uring_prep_recv(sqe, 
-                       conn -> fd, 
-                       conn -> buffer + conn -> bytes_read, 
-                       conn -> buffer_size - conn -> bytes_read, 
-                       0);
+    io_uring_prep_recv(
+        sqe,
+        conn -> fd, 
+        conn -> buffer + bytes_read, 
+        conn -> buffer_size - bytes_read, 
+        0
+    );
     io_uring_sqe_set_data(sqe, event);
 }
 
@@ -55,8 +58,26 @@ void ws_uring_add_write(struct io_uring* ring, ws_Connection* conn, const ws_Ass
     event -> type = WS_IO_EVENT_CLIENT;
     event -> conn = conn;
 
-    conn -> state = WS_RESPOND;
+    u32 bytes_sent = conn -> bytes_transferred;
 
-    io_uring_prep_send(sqe, conn -> fd, asset -> response, asset -> size, MSG_ZEROCOPY);
+    if (LIKELY(asset -> size < 65536)) {
+        io_uring_prep_send(
+            sqe, 
+            conn -> fd, 
+            asset -> response + bytes_sent, 
+            asset -> size - bytes_sent, 
+            0 
+        );
+    } else {
+        io_uring_prep_send_zc(
+            sqe, 
+            conn -> fd, 
+            asset -> response + bytes_sent, 
+            asset -> size - bytes_sent, 
+            0, 
+            0
+        );
+    }
+
     io_uring_sqe_set_data(sqe, event);
 }

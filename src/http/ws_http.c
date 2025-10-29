@@ -6,7 +6,7 @@
 #include "ws_http_errors.h"
 #include "ws_http_types.h"
 
-#include <string.h>
+// #include <string.h>
 #include <sys/socket.h>
 #include <unistd.h>
 
@@ -15,16 +15,24 @@
 *   Little endian, need to add a check and support for big vs little endian
 *
 */
-#define WS_HTTP_METHOD_GET_U32 0x20544547u 
+
+#define WS_HTTP_METHOD_GET_U32  0x20544547u 
+#define WS_HTTP_METHOD_POST_U32 0x54534F50u
 
 static inline ws_HttpMethod ws_http_method_lookup(const char* p, u32 len) {
-    if (UNLIKELY(len < 3 || len > 4)) return WS_HTTP_METHOD_INVALID;
+    if (UNLIKELY(len < 3 || len > WS_HTTP_MAX_METHOD_LEN)) {
+        return WS_HTTP_METHOD_INVALID;
+    }
 
     u32 word = *(u32*) p;
 
     switch (word) {
         case WS_HTTP_METHOD_GET_U32:
             return WS_HTTP_METHOD_GET;
+
+        case WS_HTTP_METHOD_POST_U32:
+            return WS_HTTP_METHOD_POST;
+
         default:
             return WS_HTTP_METHOD_INVALID;
     }
@@ -32,12 +40,12 @@ static inline ws_HttpMethod ws_http_method_lookup(const char* p, u32 len) {
 
 __attribute__ ((hot))
 const ws_Asset* ws_parse_request(ws_Connection* restrict conn, ws_HttpParseResult* restrict status) {
-    if (UNLIKELY(conn -> bytes_read > conn -> buffer_size)) {
+    if (UNLIKELY(conn -> bytes_transferred > conn -> buffer_size)) {
         *status = WS_HTTP_PARSE_ERROR;
         return &WS_HTTP_ERROR_400;
     }
 
-    u32 bytes_read = conn -> bytes_read;
+    u32 bytes_read = conn -> bytes_transferred;
     char* buffer = conn -> buffer;
     char* end = buffer + bytes_read;
     char* p = buffer;
@@ -71,7 +79,8 @@ const ws_Asset* ws_parse_request(ws_Connection* restrict conn, ws_HttpParseResul
         return &WS_HTTP_ERROR_400;
     }
 
-    method = ws_http_method_lookup(method_start, p - method_start - 1);
+    u32 len = p - method_start - 2;
+    method = ws_http_method_lookup(method_start, len);
     if (UNLIKELY(method == WS_HTTP_METHOD_INVALID)) {
         *status = WS_HTTP_PARSE_ERROR;
         return &WS_HTTP_ERROR_400;
@@ -104,7 +113,8 @@ const ws_Asset* ws_parse_request(ws_Connection* restrict conn, ws_HttpParseResul
         }
 
         case WS_HTTP_METHOD_POST: {
-
+            *status = WS_HTTP_PARSE_OK;
+            return asset;
         }
 
         default: {

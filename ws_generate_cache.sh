@@ -4,7 +4,7 @@ SRC_DIR=${1:-"www"}
 
 if [ ! -d "$SRC_DIR" ]; then
     echo "Error: Directory $SRC_DIR not found!"
-    echo "Usage: $0 <www_directory>"
+    echo "Usage: $0 <directory>"
     exit 1
 fi
 

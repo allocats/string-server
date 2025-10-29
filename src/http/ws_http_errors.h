@@ -6,13 +6,13 @@
 
 static const ws_Asset WS_HTTP_ERROR_400 = {
     .hash = 0x0,
-    .size = 78,
+    .size = 79,
     .response = "HTTP/1.1 400 Bad Request\r\n"
                 "Content-Length: 11\r\n"
                 // "Connection: keep-alive\r\n"
                 "Connection: close\r\n"
                 "\r\n"
-                "Bad Request"
+                "Bad Request!"
 };
 
 static const ws_Asset WS_HTTP_ERROR_404 = {

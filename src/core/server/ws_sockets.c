@@ -5,6 +5,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <netinet/tcp.h>
 #include <stdio.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -33,6 +34,10 @@ i32 ws_create_tcp_server(const char* address, const u16 port) {
 
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) == -1) {
         WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: SO_REUSEPORT", fd, 1);
+    }
+
+    if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1) {
+        WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: TCP_NODELAY", fd, 1);
     }
 
     struct sockaddr_in addr = {0};
