@@ -15,8 +15,13 @@ static inline ws_IoEvent* ws_uring_alloc_event(void) {
 void ws_uring_add_accept(struct io_uring* ring, i32 server_fd) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
-        fprintf(stderr, "Failed to get SQE for accpet\n");
-        return;
+        io_uring_submit(ring);
+        sqe = io_uring_get_sqe(ring);
+        
+        if (UNLIKELY(!sqe)) {
+            fprintf(stderr, "Failed to get SQE for accpet\n");
+            return;
+        }
     }
 
     WS_ACCEPT_EVENT.server_fd = server_fd;
@@ -27,8 +32,13 @@ void ws_uring_add_accept(struct io_uring* ring, i32 server_fd) {
 void ws_uring_add_read(struct io_uring* ring, ws_Connection* conn) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
-        fprintf(stderr, "Failed to get SQE for read\n");
-        return;
+        io_uring_submit(ring);
+        sqe = io_uring_get_sqe(ring);
+        
+        if (UNLIKELY(!sqe)) {
+            fprintf(stderr, "Failed to get SQE for read\n");
+            return;
+        }
     }
 
     ws_IoEvent* event = ws_uring_alloc_event();
@@ -50,8 +60,13 @@ void ws_uring_add_read(struct io_uring* ring, ws_Connection* conn) {
 void ws_uring_add_write(struct io_uring* ring, ws_Connection* conn, const ws_Asset* asset) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
-        fprintf(stderr, "Failed to get SQE for write\n");
-        return;
+        io_uring_submit(ring);
+        sqe = io_uring_get_sqe(ring);
+        
+        if (UNLIKELY(!sqe)) {
+            fprintf(stderr, "Failed to get SQE for write\n");
+            return;
+        }
     }
 
     ws_IoEvent* event = ws_uring_alloc_event();
@@ -69,13 +84,12 @@ void ws_uring_add_write(struct io_uring* ring, ws_Connection* conn, const ws_Ass
             0 
         );
     } else {
-        io_uring_prep_send_zc(
+        io_uring_prep_send(
             sqe, 
             conn -> fd, 
             asset -> response + bytes_sent, 
             asset -> size - bytes_sent, 
-            0, 
-            0
+            MSG_ZEROCOPY 
         );
     }
 

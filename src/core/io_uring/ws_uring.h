@@ -9,8 +9,8 @@
 
 #include <liburing.h>
 
-#define RING_SIZE 256
-#define MAX_IO_EVENTS RING_SIZE * 2
+#define RING_SIZE 1024 
+#define MAX_IO_EVENTS RING_SIZE * 4
 
 static ws_IoEvent WS_ACCEPT_EVENT = {
     .type = WS_IO_EVENT_ACCEPT,

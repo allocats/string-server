@@ -48,6 +48,7 @@ void ws_start_server(const char* address, const u16 port) {
 
         int ret = io_uring_wait_cqe(&ring, &cqe); 
         if (UNLIKELY(ret < 0)) {
+            if (errno == -EINTR) continue;
             WS_ERR_CLOSE_AND_EXIT("io_uring_wait_cqe failed", server_fd, 1);
         } 
 
