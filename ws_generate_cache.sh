@@ -115,6 +115,7 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
     echo "" >> "$OUTPUT_FILE"
 
     echo "  {" >> "$LOOKUP_FILE"
+    # echo "      .path = \"$file\"," >> "$LOOKUP_FILE"
     echo "      .hash = 0x$(printf '%x' $hash)," >> "$LOOKUP_FILE"
     echo "      .size = sizeof(response_$safe_name) - 1," >> "$LOOKUP_FILE"
     echo "      .response = response_$safe_name" >> "$LOOKUP_FILE"

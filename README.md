@@ -1,4 +1,4 @@
-# String Server
+# Whisker
 
 An opinionated, high performance servers focused on simplicity and speed. Most sites serve a known set of assets, so why rely on runtime I/O or overly complex systems when you know what you need to serve?
 

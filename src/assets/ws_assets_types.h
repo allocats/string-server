@@ -15,8 +15,8 @@
 *
 */
 typedef struct __attribute__ ((aligned(32))) {
-    const size_t size;
     const char* response;
+    const size_t size;
     const u32 hash;
     u8 _padding[12];
 } ws_Asset;
