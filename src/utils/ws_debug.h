@@ -11,7 +11,7 @@
 *
 */
 
-// #define WS_DEBUG_MODE
+#define WS_DEBUG_MODE
 
 #ifdef WS_DEBUG_MODE
     #define ws_debug_assert(cond) (assert((cond)))

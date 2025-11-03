@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+mkdir -p .whisker/assets/
+
 SRC_DIR=${1:-"www"}
 
 if [ ! -d "$SRC_DIR" ]; then
@@ -31,7 +33,7 @@ cat > "$LOOKUP_FILE" << 'EOF'
 
 #include "../assets/ws_assets_types.h"
 
-const ws_Asset WS_ASSETS[] = {
+static ws_Asset WS_ASSETS[] = {
 EOF
 
 file_count=0
@@ -74,52 +76,104 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
     echo ""
     echo "Processing: /$rel_path ($original_size bytes)"
 
+    if [ $original_size -lt 65536 ]; then
+        case "$file" in
+            *.html)
+                content=$(cat "$file" | minify_html)
+                content_len=${#content}
+                content=$(echo "$content" | escape_for_string_delim)
+                header+="Content-Type: text/html\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *.css)
+                content=$(cat "$file" | csso)
+                content_len=${#content}
+                content=$(echo "$content" | escape_for_string_delim)
+                header+="Content-Type: text/css\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *.js)
+                content=$(cat "$file" | terser)
+                content_len=${#content}
+                content=$(echo "$content" | escape_for_string_delim)
+                header+="Content-Type: text/javascript\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *)
+                content=$(cat "$file")
+                content_len=${#content}
+                content=$(echo "$content" | escape_for_string_delim)
+                ;;
+        esac
+
+        hash=$(fnv1a_hash "${rel_path}")
+
+        echo "Hash for /${rel_path}: 0x$(printf '%x', $hash) (Input: ${rel_path}))"
+        
+        minified_size=${#content}
+        savings=$((original_size - minified_size))
+        percentage=$(( savings * 100 / original_size ))
+
+        echo "  Minified: $minified_size bytes (saved $savings bytes, ${percentage}%)"
+
+        echo "static const char response_$safe_name[] = \"$header\" \"$content\";" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+
+        echo "  {" >> "$LOOKUP_FILE"
+        echo "      .hash = 0x$(printf '%x' $hash)," >> "$LOOKUP_FILE"
+        echo "      .size = sizeof(response_$safe_name) - 1," >> "$LOOKUP_FILE"
+        echo "      .type = WS_ASSET_IN_MEMORY,"        >> "$LOOKUP_FILE"
+        echo "      .response = response_$safe_name" >> "$LOOKUP_FILE"
+        echo "  }," >> "$LOOKUP_FILE"
+    else
+        touch ".whisker/assets/${rel_path}"
+        case "$file" in
+            *.html)
+                content=$(cat "$file" | minify_html)
+                content_len=${#content}
+                echo "$content" > ".whisker/assets/${rel_path}"
+                header+="Content-Type: text/html\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *.css)
+                content=$(cat "$file" | csso)
+                content_len=${#content}
+                echo "$content" > ".whisker/assets/${rel_path}"
+                header+="Content-Type: text/css\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *.js)
+                content=$(cat "$file" | terser)
+                content_len=${#content}
+                echo "$content" > ".whisker/assets/${rel_path}"
+                header+="Content-Type: text/javascript\r\nContent-Length: ${content_len}\r\n\r\n"
+                ;;
+            *)
+                content=$(cat "$file")
+                content_len=${#content}
+                echo "$content" > ".whisker/assets/${file}"
+                ;;
+        esac
+
+        hash=$(fnv1a_hash "${rel_path}")
+
+        echo "Hash for /${rel_path}: 0x$(printf '%x', $hash) (Input: ${rel_path}))"
+        
+        minified_size=${#content}
+        savings=$((original_size - minified_size))
+        percentage=$(( savings * 100 / original_size ))
+
+        echo "  Minified: $minified_size bytes (saved $savings bytes, ${percentage}%)"
+
+        echo "static const char response_$safe_name[] = \"$header\" \".whisker/assets/${rel_path}\";" >> "$OUTPUT_FILE"
+        echo "" >> "$OUTPUT_FILE"
+
+        total_size=$((minified_size + ${#header}))
+
+        echo "  {" >> "$LOOKUP_FILE"
+        echo "      .hash = 0x$(printf '%x' $hash),"  >> "$LOOKUP_FILE"
+        echo "      .size = ${total_size},"           >> "$LOOKUP_FILE"
+        echo "      .header_len = ${#header},"        >> "$LOOKUP_FILE"
+        echo "      .type = WS_ASSET_FILE,"           >> "$LOOKUP_FILE"
+        echo "      .response = response_$safe_name"  >> "$LOOKUP_FILE"
+        echo "  }," >> "$LOOKUP_FILE"
+    fi
     
-    case "$file" in
-        *.html)
-            content=$(cat "$file" | minify_html)
-            content_len=${#content}
-            content=$(echo "$content" | escape_for_string_delim)
-            header+="Content-Type: text/html\r\nContent-Length: ${content_len}\r\n\r\n"
-            ;;
-        *.css)
-            content=$(cat "$file" | csso)
-            content_len=${#content}
-            content=$(echo "$content" | escape_for_string_delim)
-            header+="Content-Type: text/css\r\nContent-Length: ${content_len}\r\n\r\n"
-            ;;
-        *.js)
-            content=$(cat "$file" | terser)
-            content_len=${#content}
-            content=$(echo "$content" | escape_for_string_delim)
-            header+="Content-Type: text/javascript\r\nContent-Length: ${content_len}\r\n\r\n"
-            ;;
-        *)
-            content=$(cat "$file")
-            content_len=${#content}
-            content=$(echo "$content" | escape_for_string_delim)
-            ;;
-    esac
-
-    hash=$(fnv1a_hash "${rel_path}")
-
-    echo "Hash for /${rel_path}: 0x$(printf '%x', $hash) (Input: ${rel_path}))"
-    
-    minified_size=${#content}
-    savings=$((original_size - minified_size))
-    percentage=$(( savings * 100 / original_size ))
-
-    echo "  Minified: $minified_size bytes (saved $savings bytes, ${percentage}%)"
-
-    echo "static const char response_$safe_name[] = \"$header\" \"$content\";" >> "$OUTPUT_FILE"
-    echo "" >> "$OUTPUT_FILE"
-
-    echo "  {" >> "$LOOKUP_FILE"
-    # echo "      .path = \"$file\"," >> "$LOOKUP_FILE"
-    echo "      .hash = 0x$(printf '%x' $hash)," >> "$LOOKUP_FILE"
-    echo "      .size = sizeof(response_$safe_name) - 1," >> "$LOOKUP_FILE"
-    echo "      .response = response_$safe_name" >> "$LOOKUP_FILE"
-    echo "  }," >> "$LOOKUP_FILE"
     
     ((file_count++))
 done

@@ -4,6 +4,11 @@
 
 #include "../utils/ws_types.h"
 
+typedef enum __attribute__ ((packed)) {
+    WS_ASSET_IN_MEMORY,
+    WS_ASSET_FILE,
+} ws_AssetType;
+
 /*
 * 
 *   Keep structs aligned to and <= 32 bytes to fit two into a single cache line 
@@ -16,9 +21,13 @@
 */
 typedef struct __attribute__ ((aligned(32))) {
     const char* response;
-    const size_t size;
+    const u32 size;
     const u32 hash;
-    u8 _padding[12];
+    const u16 header_len;
+    const u8 flags;
+    const ws_AssetType type;
+    i32 fd;
+    u8 _padding[4];
 } ws_Asset;
 
 #endif // !WS_ASSET_TYPES_H

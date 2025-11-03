@@ -32,10 +32,12 @@ i32 ws_create_tcp_server(const char* address, const u16 port) {
         WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: SO_REUSEADDR", fd, 1);
     }
 
+    optval = 1;
     if (setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, &optval, sizeof(optval)) == -1) {
         WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: SO_REUSEPORT", fd, 1);
     }
 
+    optval = 1;
     if (setsockopt(fd, SOL_TCP, TCP_NODELAY, &optval, sizeof(optval)) == -1) {
         WS_ERR_CLOSE_AND_EXIT("Failed to set socket option: TCP_NODELAY", fd, 1);
     }

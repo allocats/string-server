@@ -1,8 +1,11 @@
 #include "ws_connection.h"
 
+#include "../../utils/ws_debug.h"
 #include "../../utils/ws_macros.h"
+
 #include "ws_connection_types.h"
 
+#include <sys/socket.h>
 #include <unistd.h>
 
 static u32 last_index = 0;
@@ -37,7 +40,7 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict
     return NULL;
 }
 
-__attribute__ ((always_inline)) inline 
+__attribute__ ((always_inline)) inline
 void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict conns, b32* restrict slots) {
     if (UNLIKELY(!ptr)) return;
 
@@ -48,4 +51,8 @@ void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict con
     ptr -> bytes_transferred = 0;
 
     close(ptr -> fd);
+
+    ws_debug_log(
+        "Closed client"
+    );
 }
