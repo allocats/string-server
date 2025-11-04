@@ -76,7 +76,7 @@ for file in $(find "$SRC_DIR" -name "*.html" -o -name "*.css" -o -name "*.js" | 
     echo ""
     echo "Processing: /$rel_path ($original_size bytes)"
 
-    if [ $original_size -lt 65536 ]; then
+    if [ $original_size -lt 102400 ]; then
         case "$file" in
             *.html)
                 content=$(cat "$file" | minify_html)

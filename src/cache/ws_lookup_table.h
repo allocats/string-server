@@ -15,9 +15,8 @@ static ws_Asset WS_ASSETS[] = {
   },
   {
       .hash = 0xebd1114,
-      .size = 108055,
-      .header_len = 98,
-      .type = WS_ASSET_FILE,
+      .size = sizeof(response_index_js) - 1,
+      .type = WS_ASSET_IN_MEMORY,
       .response = response_index_js
   },
   {

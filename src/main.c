@@ -20,7 +20,7 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define WORKER_COUNT 12
+#define WORKER_COUNT 8
 #define ADDRESS "0.0.0.0"
 #define PORT 8080
 

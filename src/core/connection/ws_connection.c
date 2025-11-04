@@ -10,7 +10,12 @@
 
 static u32 last_index = 0;
 
-ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict slots, u32 max) {
+ws_Connection* ws_find_slot(
+    i32 fd, 
+    ws_Connection* restrict conns, 
+    b32* restrict slots, 
+    u32 max
+) {
     for (u32 i = last_index; i < max; i++) {
         if (LIKELY(slots[i] == false)) {
             slots[i] = true;
@@ -41,7 +46,12 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict
 }
 
 __attribute__ ((always_inline)) inline
-void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict conns, b32* restrict slots) {
+void ws_free_connection(
+    ws_Connection* restrict ptr, 
+    ws_Connection* restrict conns, 
+    b32* restrict slots,
+    ws_SendfileCtx* ctxs
+) {
     if (UNLIKELY(!ptr)) return;
 
     u32 index = ptr - conns;
@@ -49,6 +59,9 @@ void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict con
     slots[index] = false;
 
     ptr -> bytes_transferred = 0;
+
+    ws_SendfileCtx* ctx = &ctxs[index];
+    ws_sendfile_close_pipe(ctx);
 
     close(ptr -> fd);
 

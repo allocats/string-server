@@ -28,5 +28,6 @@ void ws_uring_add_write_header(struct io_uring* ring, ws_Connection* conn, const
 void ws_sendfile_init_ctx(ws_SendfileCtx* ctx, i32 in_fd, i32 out_fd, usize n_bytes);
 void ws_sendfile_to_pipe(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connection* conn);
 void ws_sendfile_to_socket(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connection* conn);
+void ws_sendfile_close_pipe(ws_SendfileCtx* ctx);
 
 #endif // !WS_URING_H

@@ -44,13 +44,13 @@ void ws_handle_accept(
 
     conn -> fd = res;
     conn -> state = WS_READING;
+
     ws_uring_add_read_request(ring, conn);
 
     ws_debug_log(
         "[Line %d] Added client, fd: %d. Reading request", 
         __LINE__, conn -> fd
     );
-
 }
 
 __attribute__ ((always_inline)) static inline
@@ -59,10 +59,11 @@ void ws_handle_read(
     i32 res, 
     ws_Connection* conn, 
     ws_Connection* connections,
-    b32* connection_slots
+    b32* connection_slots,
+    ws_SendfileCtx* sendfile_ctxs
 ) {
     if (UNLIKELY(res <= 0)) {
-        ws_free_connection(conn, connections, connection_slots);
+        ws_free_connection(conn, connections, connection_slots, sendfile_ctxs);
 
         ws_debug_log(
             "[Line %d] Closing client %d", 
@@ -87,7 +88,20 @@ void ws_handle_read(
     if (LIKELY(result == WS_HTTP_PARSE_OK)) {
         conn -> state = WS_RESPOND;
         conn -> bytes_transferred = 0;
-        ws_uring_add_write_response(ring, conn, asset);
+
+        if (LIKELY(asset -> type == WS_ASSET_IN_MEMORY)) {
+            ws_uring_add_write_response(ring, conn, asset);
+
+            ws_debug_log(
+                "READ: Memory, sending response"
+            );
+        } else {
+            ws_uring_add_write_header(ring, conn, asset);
+
+            ws_debug_log(
+                "READ: File, sending header"
+            );
+        }
 
         ws_debug_log(
             "[Line %d] Write to client %d", 
@@ -98,6 +112,7 @@ void ws_handle_read(
     } else if (LIKELY(result == WS_HTTP_PARSE_ERROR)) {
         conn -> state = WS_DONE;
         conn -> bytes_transferred = 0;
+
         ws_uring_add_write_response(ring, conn, asset);
 
         ws_debug_log(
@@ -133,14 +148,14 @@ void ws_handle_respond(
             __LINE__, conn -> fd
         );
 
-        ws_free_connection(conn, connections, connection_slots);
+        ws_free_connection(conn, connections, connection_slots, sendfile_ctxs);
         return;
     }
 
     const ws_Asset* asset = conn -> asset;
     conn -> bytes_transferred += res;
 
-    if (LIKELY(asset -> type == WS_ASSET_IN_MEMORY)) {
+    if (asset -> type == WS_ASSET_IN_MEMORY) {
         if (UNLIKELY(conn -> bytes_transferred < asset -> size)) {
             ws_debug_log(
                 "[Line %d] Partial write for client %d", 
@@ -153,6 +168,7 @@ void ws_handle_respond(
 
         conn -> bytes_transferred = 0;
         conn -> state = WS_READING;
+
         ws_uring_add_read_request(ring, conn);
 
         ws_debug_log(
@@ -165,8 +181,7 @@ void ws_handle_respond(
 
     ws_SendfileCtx* ctx = &sendfile_ctxs[conn - connections];
 
-    // FIX THIS HEADER IS NOT BEING SENT
-    if (conn -> bytes_transferred < asset -> header_len) {
+    if (UNLIKELY(conn -> bytes_transferred < asset -> header_len)) {
         ws_uring_add_write_header(ring, conn, asset);
         return;
     }     
@@ -177,19 +192,23 @@ void ws_handle_respond(
 
             ws_sendfile_init_ctx(ctx, asset -> fd, conn -> fd, asset -> size);
 
-            if (ctx -> state == WS_SENDFILE_ERR) {
-                ws_free_connection(conn, connections, connection_slots);
+            if (UNLIKELY(ctx -> state == WS_SENDFILE_ERR)) {
+                ctx -> state = WS_SENDFILE_NEW;
+
+                // TODO: Send server error
+                ws_free_connection(conn, connections, connection_slots, sendfile_ctxs);
                 return;
             }
 
+            ctx -> state = WS_SENDFILE_TO_PIPE;
             ws_sendfile_to_pipe(ring, ctx, conn);
             return;
         }
 
         case WS_SENDFILE_TO_PIPE: {
             ws_debug_log(
-                "SPLICE TO_PIPE completed: res=%d, file_offset was=%u", 
-                res, ctx -> file_offset
+                "SPLICE TO_PIPE completed: res=%d, file_offset was=%u, fd=%d", 
+                res, ctx -> file_offset, conn -> fd
             );
 
             ctx -> file_offset += res;
@@ -215,20 +234,32 @@ void ws_handle_respond(
                 return;
             }
 
-            close(ctx -> pipe[0]);
-            close(ctx -> pipe[1]);
+            ctx -> state = WS_SENDFILE_NEW;
+            ws_sendfile_close_pipe(ctx);
+            
+            conn -> bytes_transferred = 0;
+            conn -> state = WS_READING;
 
-            ctx -> state = WS_SENDFILE_OK;
+            ws_uring_add_read_request(ring, conn);
 
-            ws_free_connection(conn, connections, connection_slots);
             return;
         }
 
-        case WS_SENDFILE_OK:
+        case WS_SENDFILE_OK: {
+            ctx -> state = WS_SENDFILE_NEW;
+            ws_sendfile_close_pipe(ctx);
+
+            conn -> bytes_transferred = 0;
+            conn -> state = WS_READING;
+
+            ws_uring_add_read_request(ring, conn);
+
+            return;
+        }
+
         case WS_SENDFILE_ERR: {
-            close(ctx -> pipe[0]);
-            close(ctx -> pipe[1]);
-            ws_free_connection(conn, connections, connection_slots);
+            ctx -> state = WS_SENDFILE_NEW;
+            ws_free_connection(conn, connections, connection_slots, sendfile_ctxs);
             return;
         }
     }
@@ -237,6 +268,7 @@ void ws_handle_respond(
 __attribute__ ((hot))
 void ws_start_server(const char* address, const u16 port) {
     if (ws_assets_load() == -1) {
+        fprintf(stderr, "Failed to load assets. Closing");
         return;
     }
 
@@ -299,7 +331,8 @@ void ws_start_server(const char* address, const u16 port) {
                             res, 
                             conn, 
                             connections, 
-                            connection_slots
+                            connection_slots,
+                            sendfile_ctxs
                         );
                         break;
                     }
@@ -322,7 +355,12 @@ void ws_start_server(const char* address, const u16 port) {
                             __LINE__, conn -> fd
                         );
 
-                        ws_free_connection(conn, connections, connection_slots);
+                        ws_free_connection(
+                            conn, 
+                            connections, 
+                            connection_slots, 
+                            sendfile_ctxs
+                        );
                         break;
                     }
                 }

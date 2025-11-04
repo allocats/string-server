@@ -116,10 +116,6 @@ void ws_uring_add_write_header(
 
     u32 bytes_sent = conn -> bytes_transferred;
 
-    ws_debug_log(
-        "header=%u", bytes_sent
-    );
-
     io_uring_prep_send(
         sqe, 
         conn -> fd, 
@@ -173,7 +169,8 @@ void ws_sendfile_to_pipe(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connecti
         ctx -> pipe[1], 
         -1, 
         chunk,
-        0//SPLICE_F_MOVE 
+        SPLICE_F_NONBLOCK | SPLICE_F_MOVE
+        // 0
     );
 
     io_uring_sqe_set_data(sqe, event);
@@ -203,8 +200,15 @@ void ws_sendfile_to_socket(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connec
         ctx -> out_fd, 
         -1, 
         ctx -> bytes_in_pipe, 
-        0//SPLICE_F_MOVE | SPLICE_F_MORE
+        SPLICE_F_NONBLOCK
+        // 0
     );
 
     io_uring_sqe_set_data(sqe, event);
+}
+
+__attribute__ ((always_inline)) inline
+void ws_sendfile_close_pipe(ws_SendfileCtx* ctx) {
+    if (LIKELY(ctx -> pipe[0] > 0)) close(ctx -> pipe[0]);
+    if (LIKELY(ctx -> pipe[1] > 0)) close(ctx -> pipe[1]);
 }
