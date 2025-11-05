@@ -63,9 +63,10 @@ void ws_free_connection(
     ws_SendfileCtx* ctx = &ctxs[index];
     ws_sendfile_close_pipe(ctx);
 
-    close(ptr -> fd);
-
     ws_debug_log(
-        "Closed client"
+        "Closed client %u",
+        ptr -> fd
     );
+
+    if (LIKELY(ptr -> fd > 0)) close(ptr -> fd);
 }

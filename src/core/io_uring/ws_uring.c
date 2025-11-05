@@ -14,13 +14,18 @@
 #define WS_PIPE_SIZE 65536
 
 static __attribute__ ((always_inline)) inline 
-ws_IoEvent* ws_uring_alloc_event(void) {
+ws_IoEvent* ws_uring_alloc_event(
+    void
+) {
     ws_IoEvent* event = &WS_IO_EVENTS[WS_IO_EVENT_INDEX];
     WS_IO_EVENT_INDEX = (WS_IO_EVENT_INDEX + 1) & (MAX_IO_EVENTS - 1);
     return event;
 }
 
-void ws_uring_add_accept(struct io_uring* ring, i32 server_fd) {
+void ws_uring_add_accept(
+    struct io_uring* ring, 
+    i32 server_fd
+) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
         io_uring_submit(ring);
@@ -37,7 +42,10 @@ void ws_uring_add_accept(struct io_uring* ring, i32 server_fd) {
     io_uring_sqe_set_data(sqe, &WS_ACCEPT_EVENT);
 }
 
-void ws_uring_add_read_request(struct io_uring* ring, ws_Connection* conn) {
+void ws_uring_add_read_request(
+    struct io_uring* ring, 
+    ws_Connection* conn
+) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
         io_uring_submit(ring);
@@ -65,7 +73,11 @@ void ws_uring_add_read_request(struct io_uring* ring, ws_Connection* conn) {
     io_uring_sqe_set_data(sqe, event);
 }
 
-void ws_uring_add_write_response(struct io_uring* ring, ws_Connection* conn, const ws_Asset* asset) {
+void ws_uring_add_write_response(
+    struct io_uring* ring, 
+    ws_Connection* conn, 
+    const ws_Asset* asset
+) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
         io_uring_submit(ring);
@@ -127,8 +139,12 @@ void ws_uring_add_write_header(
     io_uring_sqe_set_data(sqe, event);
 }
 
-inline __attribute__ ((always_inline))
-void ws_sendfile_init_ctx(ws_SendfileCtx* ctx, i32 in_fd, i32 out_fd, usize n_bytes) {
+__attribute__ ((always_inline))
+void ws_sendfile_init_ctx(
+    ws_SendfileCtx* ctx, 
+    i32 in_fd, 
+    i32 out_fd, usize n_bytes
+) {
     if (UNLIKELY(pipe(ctx -> pipe) == -1)) {
         ctx -> state = WS_SENDFILE_ERR;
         return;
@@ -142,7 +158,11 @@ void ws_sendfile_init_ctx(ws_SendfileCtx* ctx, i32 in_fd, i32 out_fd, usize n_by
     ctx -> state = WS_SENDFILE_TO_PIPE;
 }
 
-void ws_sendfile_to_pipe(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connection* conn) {
+void ws_sendfile_to_pipe(
+    struct io_uring* ring, 
+    ws_SendfileCtx* ctx, 
+    ws_Connection* conn
+) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
         io_uring_submit(ring);
@@ -176,7 +196,11 @@ void ws_sendfile_to_pipe(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connecti
     io_uring_sqe_set_data(sqe, event);
 }
 
-void ws_sendfile_to_socket(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connection* conn) {
+void ws_sendfile_to_socket(
+    struct io_uring* ring, 
+    ws_SendfileCtx* ctx, 
+    ws_Connection* conn
+) {
     struct io_uring_sqe* sqe = io_uring_get_sqe(ring);
     if (UNLIKELY(!sqe)) {
         io_uring_submit(ring);
@@ -208,7 +232,9 @@ void ws_sendfile_to_socket(struct io_uring* ring, ws_SendfileCtx* ctx, ws_Connec
 }
 
 __attribute__ ((always_inline)) inline
-void ws_sendfile_close_pipe(ws_SendfileCtx* ctx) {
+void ws_sendfile_close_pipe(
+    ws_SendfileCtx* ctx
+) {
     if (LIKELY(ctx -> pipe[0] > 0)) close(ctx -> pipe[0]);
     if (LIKELY(ctx -> pipe[1] > 0)) close(ctx -> pipe[1]);
 }

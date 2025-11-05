@@ -350,11 +350,6 @@ void ws_start_server(const char* address, const u16 port) {
                     }
 
                     case WS_DONE: {
-                        ws_debug_log(
-                            "[Line %d] Client is done, closing %d", 
-                            __LINE__, conn -> fd
-                        );
-
                         ws_free_connection(
                             conn, 
                             connections, 

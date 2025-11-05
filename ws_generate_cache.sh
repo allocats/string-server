@@ -2,7 +2,14 @@
 
 mkdir -p .whisker/assets/
 
-SRC_DIR=${1:-"www"}
+SERVER_PORT=$(grep "port:" server.config | cut -d: -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+WORKER_COUNT=$(grep "workers:" server.config | cut -d: -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+SRC_DIR=$(grep "dir:" server.config | cut -d: -f2 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+
+sed -i \
+    -e "s/^\(#define[[:space:]]*PORT[[:space:]]*\).*/\1$SERVER_PORT/" \
+    -e "s/^\(#define[[:space:]]*WORKER_COUNT[[:space:]]*\).*/\1$WORKER_COUNT/" \
+    src/main.c
 
 if [ ! -d "$SRC_DIR" ]; then
     echo "Error: Directory $SRC_DIR not found!"
@@ -193,3 +200,7 @@ echo "Generated $file_count cached files:"
 echo "  - $OUTPUT_FILE (file data)"
 echo "  - $LOOKUP_FILE (lookup table)"
 echo ""
+
+
+echo "Compiling server..."
+catalyze build

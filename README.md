@@ -1,8 +1,8 @@
 # Whisker
 
-An opinionated, high performance servers focused on simplicity and speed. Most sites serve a known set of assets, so why rely on runtime I/O or overly complex systems when you know what you need to serve?
+An opinionated, high performance server focused on simplicity and speed. Most sites serve a known set of assets, so why rely on runtime I/O or overly complex systems when you know what you need to serve?
 
-Originally starting out as a curiosity project, it evolved into something I want to make real and production ready. This follows more of an asset serving style rather than a traditional HTTP server as it stands, I plan to extend this into a production ready webserver as time goes on and support all forms of HTTP requests and protocols. By prioritising compile time computation over runtime overhead, it results in a faster, leaner, and sometimes even safer way to deliver content to the web.
+Originally starting out as a curiosity project, it evolved into something I want to make real and production ready. This follows more of a static asset serving style rather than a traditional HTTP server as it stands, I plan to extend this into a production ready webserver as time goes on and support all forms of HTTP requests and protocols. By prioritising compile time computation over runtime overhead, it results in a faster, leaner, and sometimes even safer way to deliver content to the web.
 
 ## How it works
 
@@ -10,11 +10,11 @@ Starting the server is a two step process:
 
 **1. Preprocess:**  
 
-A bash script drives the build process, minifiying your content you wish to serve and generates cached files, hashes and a lookup table for the server.
+A bash script drives the build process, minifiying your content you wish to serve and generates cached files, hashes and a lookup table for the server. A basic config file exists in whisker.config
 
 **2. Compiling:**  
 
-Now one just recompiles the binary and your server is ready to serve the web 
+Now one just recompiles the binary and your server is ready to serve the web! The bash script this does this automatically and the binary is in ```./build/bin/whisker``` 
 
  When parsing a request the URI is hashed with ```FNV-1a``` then a hash lookup is done. If the hash matches it sends the corresponding asset otherwise a 404 response is sent to the client. This design is extremely fast and inherently is secure, malicious or unknown requests simply fail to match any known hashes.
 

@@ -20,8 +20,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define WORKER_COUNT 8
 #define ADDRESS "0.0.0.0"
+#define WORKER_COUNT 12
 #define PORT 8080
 
 volatile sig_atomic_t running = 1;

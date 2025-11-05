@@ -5,6 +5,8 @@
 #include "ws_assets_types.h"
 
 #include <fcntl.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
 __attribute__((always_inline)) inline 
@@ -19,6 +21,7 @@ const ws_Asset* ws_lookup_asset(u32 hash) {
 __attribute__((always_inline)) inline 
 u32 ws_hash_fnv1a(const char* s, u32 len) {
     u32 hash = 2166136261u;
+    #pragma unroll 4
     for (u32 i = 0; i < len; i++) {
         hash ^= s[i];
         hash *= 16777619u;
