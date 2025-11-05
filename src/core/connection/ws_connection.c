@@ -1,13 +1,21 @@
 #include "ws_connection.h"
 
+#include "../../utils/ws_debug.h"
 #include "../../utils/ws_macros.h"
+
 #include "ws_connection_types.h"
 
+#include <sys/socket.h>
 #include <unistd.h>
 
 static u32 last_index = 0;
 
-ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict slots, u32 max) {
+ws_Connection* ws_find_slot(
+    i32 fd, 
+    ws_Connection* restrict conns, 
+    b32* restrict slots, 
+    u32 max
+) {
     for (u32 i = last_index; i < max; i++) {
         if (LIKELY(slots[i] == false)) {
             slots[i] = true;
@@ -37,8 +45,13 @@ ws_Connection* ws_find_slot(i32 fd, ws_Connection* restrict conns, b32* restrict
     return NULL;
 }
 
-__attribute__ ((always_inline)) inline 
-void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict conns, b32* restrict slots) {
+__attribute__ ((always_inline)) inline
+void ws_free_connection(
+    ws_Connection* restrict ptr, 
+    ws_Connection* restrict conns, 
+    b32* restrict slots,
+    ws_SendfileCtx* ctxs
+) {
     if (UNLIKELY(!ptr)) return;
 
     u32 index = ptr - conns;
@@ -47,5 +60,13 @@ void ws_free_connection(ws_Connection* restrict ptr, ws_Connection* restrict con
 
     ptr -> bytes_transferred = 0;
 
-    close(ptr -> fd);
+    ws_SendfileCtx* ctx = &ctxs[index];
+    ws_sendfile_close_pipe(ctx);
+
+    ws_debug_log(
+        "Closed client %u",
+        ptr -> fd
+    );
+
+    if (LIKELY(ptr -> fd > 0)) close(ptr -> fd);
 }

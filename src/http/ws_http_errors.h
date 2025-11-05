@@ -12,7 +12,8 @@ static const ws_Asset WS_HTTP_ERROR_400 = {
                 // "Connection: keep-alive\r\n"
                 "Connection: close\r\n"
                 "\r\n"
-                "Bad Request!"
+                "Bad Request!",
+    .type = WS_ASSET_IN_MEMORY,
 };
 
 static const ws_Asset WS_HTTP_ERROR_404 = {
@@ -24,6 +25,7 @@ static const ws_Asset WS_HTTP_ERROR_404 = {
                 "Connection: close\r\n"
                 "\r\n"
                 "Not Found",
+    .type = WS_ASSET_IN_MEMORY,
 };
 
 #endif // !WS_HTTP_ERRORS_H

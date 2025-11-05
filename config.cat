@@ -1,10 +1,10 @@
 config {
 	compiler: clang
 	build_dir: build/
-	default_flags: [-Wall -Wextra -march=native]
+	default_flags: [-Wall -Wextra -march=native -luring]
 }
 
-target executable stringserver {
+target executable whisker {
 	sources: [
         includes/arena/arena_generic.c 
         includes/arena/arena_sse2.c
@@ -22,18 +22,40 @@ target executable stringserver {
 
         src/main.c
     ]
-	flags: [-O3 -flto -luring]
-	output: build/bin/stringserver
+	flags: [-O3 -flto]
+	output: build/bin/whisker
 }
 
-target debug stringserver_debug {
-	sources: [src/main.c]
-	flags: [-O0 -g3 -fsanitize=address -Weverything]
-	output: build/debug/stringserver_debug
+target debug whisker_debug {
+	sources: [
+        includes/arena/arena_generic.c 
+        includes/arena/arena_sse2.c
+        includes/arena/arena_avx2.c
+        includes/arena/arena.c 
+
+        src/assets/ws_assets.c
+
+        src/http/ws_http.c
+
+        src/core/io_uring/ws_uring.c
+        src/core/connection/ws_connection.c
+        src/core/server/ws_sockets.c
+        src/core/server/ws_server.c
+
+        src/main.c
+    ]
+	flags: [
+        -O1 
+        -g3 
+        -fsanitize=address 
+        -fsanitize=undefined 
+        -Weverything
+    ]
+	output: build/debug/whisker_debug
 }
 
-target test stringserver_tests {
+target test whisker_tests {
 	sources: [tests/test_main.c]
 	flags: [-g -Weverything]
-	output: build/tests/stringserver_test
+	output: build/tests/whisker_test
 }

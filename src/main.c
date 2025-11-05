@@ -4,6 +4,7 @@
 #ifdef WS_DEBUG_MODE
 #include "assets/ws_assets_types.h"
 #include "core/connection/ws_connection_types.h"
+#include "core/io_uring/ws_uring_types.h"
 #endif
 
 #include "core/server/ws_server.h"
@@ -19,8 +20,8 @@
 #include <sys/wait.h>
 #include <unistd.h>
 
-#define WORKER_COUNT 12
 #define ADDRESS "0.0.0.0"
+#define WORKER_COUNT 12
 #define PORT 8080
 
 volatile sig_atomic_t running = 1;
@@ -45,6 +46,8 @@ i32 main(void) {
 
     ws_debug_assert(sizeof(ws_Connection) == 32);
     ws_debug_assert(sizeof(ws_Asset) == 32);
+    ws_debug_assert(sizeof(ws_IoEvent) == 16);
+    ws_debug_assert(sizeof(ws_SendfileCtx) == 32);
 
     for (i32 i = 0; i < WORKER_COUNT; i++) {
         if (fork() == 0) {

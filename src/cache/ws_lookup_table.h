@@ -6,20 +6,23 @@
 
 #include "../assets/ws_assets_types.h"
 
-const ws_Asset WS_ASSETS[] = {
+static ws_Asset WS_ASSETS[] = {
   {
       .hash = 0xefe35522,
       .size = sizeof(response_index_html) - 1,
+      .type = WS_ASSET_IN_MEMORY,
       .response = response_index_html
   },
   {
       .hash = 0xebd1114,
       .size = sizeof(response_index_js) - 1,
+      .type = WS_ASSET_IN_MEMORY,
       .response = response_index_js
   },
   {
       .hash = 0x9876146e,
       .size = sizeof(response_styles_css) - 1,
+      .type = WS_ASSET_IN_MEMORY,
       .response = response_styles_css
   },
 };
