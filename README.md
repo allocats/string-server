@@ -6,15 +6,15 @@ Originally starting out as a curiosity project, it evolved into something I want
 
 ## Benchmarks
 
-![Requests per second](asset/RequestsPerSecond.png) 
+![Requests per second](assets/RequestsPerSecond.png) 
 
-![Average latencies](asset/AvgLatencies.png) 
+![Average latencies](assets/AvgLatencies.png) 
 
-![Maximum latencies](asset/MaxLatencies.png) 
+![Maximum latencies](assets/MaxLatencies.png) 
 
-![Median latencies](asset/MedianLatencies.png) 
+![Median latencies](assets/MedianLatencies.png) 
 
-![Transfer per second](asset/TransferPerSecond.png) 
+![Transfer per second](assets/TransferPerSecond.png) 
 
 ## How it works
 
