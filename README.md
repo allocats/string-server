@@ -4,6 +4,18 @@ An opinionated, high performance server focused on simplicity and speed. Most si
 
 Originally starting out as a curiosity project, it evolved into something I want to make real and production ready. This follows more of a static asset serving style rather than a traditional HTTP server as it stands, I plan to extend this into a production ready webserver as time goes on and support all forms of HTTP requests and protocols. By prioritising compile time computation over runtime overhead, it results in a faster, leaner, and sometimes even safer way to deliver content to the web.
 
+## Benchmarks
+
+![Requests per second](asset/RequestsPerSecond.png) 
+
+![Average latencies](asset/AvgLatencies.png) 
+
+![Maximum latencies](asset/MaxLatencies.png) 
+
+![Median latencies](asset/MedianLatencies.png) 
+
+![Transfer per second](asset/TransferPerSecond.png) 
+
 ## How it works
 
 Starting the server is a two step process:
